@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sticker-api
+  namespace: observabilidad
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sticker-api
+  template:
+    metadata:
+      labels:
+        app: sticker-api
+    spec:
+      containers:
+        - name: sticker-api
+          image: maosuarez/sticker-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_SERVICE_URL
+              value: http://sticker-db-service:8001
+            - name: OTEL_SERVICE_NAME
+              value: sticker-api
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector:4317
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.version=1.0.0,deployment.environment=prod
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 250m

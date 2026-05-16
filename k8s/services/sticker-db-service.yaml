@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sticker-db-service
+  namespace: observabilidad
+spec:
+  type: ClusterIP
+  selector:
+    app: sticker-db-service
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
