@@ -11,7 +11,7 @@ from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExp
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.propagate import set_global_textformat_propagator
+from opentelemetry.propagate import set_global_textmap
 from opentelemetry.propagators.composite import CompositePropagator
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
@@ -72,7 +72,7 @@ def setup_telemetry(app: Optional[FastAPI] = None) -> None:
     # TraceContext: propaga trace_id y span_id vía header "traceparent" (W3C estándar).
     # W3CBaggage: propaga metadatos de negocio vía header "baggage".
     # CompositePropagator aplica ambos propagadores en orden.
-    set_global_textformat_propagator(
+    set_global_textmap(
         CompositePropagator([
             TraceContextTextMapPropagator(),
             W3CBaggagePropagator(),
