@@ -17,25 +17,26 @@ data:
         timeout: 1s
         send_batch_size: 1024
       memory_limiter:
+        check_interval: 1s
         limit_mib: 256
     exporters:
       otlp/newrelic:
         endpoint: otlp.nr-data.net:4317
         headers:
           api-key: ${NEW_RELIC_LICENSE_KEY}
-      logging:
+      debug:
         verbosity: detailed
     service:
       pipelines:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/newrelic, logging]
+          exporters: [otlp/newrelic, debug]
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/newrelic, logging]
+          exporters: [otlp/newrelic, debug]
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/newrelic, logging]
+          exporters: [otlp/newrelic, debug]
