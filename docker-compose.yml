@@ -1,0 +1,21 @@
+version: "3.9"
+
+networks:
+  observabilidad-net:
+    driver: bridge
+
+services:
+  sticker-api:
+    build: ./sticker-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_SERVICE_URL=http://sticker-db-service:8001
+      - OTEL_SERVICE_NAME=sticker-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0,deployment.environment=dev
+    depends_on:
+      - sticker-db-service
+      - otel-collector
+    networks:
+      - observabilidad-net
