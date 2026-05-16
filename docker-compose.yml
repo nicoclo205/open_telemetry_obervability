@@ -1,10 +1,48 @@
 version: "3.9"
 
-networks:
-  observabilidad-net:
-    driver: bridge
-
 services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: stickers_db
+      POSTGRES_USER: stickers_user
+      POSTGRES_PASSWORD: stickers_pass
+    volumes:
+      - ./sticker-db-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stickers_user -d stickers_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [observabilidad-net]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel/collector-config.yaml"]
+    volumes:
+      - ./otel-collector/collector-config.yaml:/etc/otel/collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8888:8888"
+    env_file: .env
+    networks: [observabilidad-net]
+
+  sticker-db-service:
+    build: ./sticker-db-service
+    environment:
+      - DATABASE_URL=postgresql://stickers_user:stickers_pass@postgres:5432/stickers_db
+      - OTEL_SERVICE_NAME=sticker-db-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_RESOURCE_ATTRIBUTES=service.version=1.0.0,deployment.environment=dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks: [observabilidad-net]
+
   sticker-api:
     build: ./sticker-api
     ports:
@@ -19,3 +57,7 @@ services:
       - otel-collector
     networks:
       - observabilidad-net
+
+networks:
+  observabilidad-net:
+    driver: bridge
